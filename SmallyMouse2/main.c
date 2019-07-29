@@ -1,26 +1,26 @@
 /************************************************************************
-	main.c
+main.c
 
-	Main functions
-    SmallyMouse2 - USB to quadrature mouse converter
-    Copyright (C) 2017 Simon Inns
+Main functions
+SmallyMouse2 - USB to quadrature mouse converter
+Copyright (C) 2017 Simon Inns
 
-	This file is part of SmallyMouse2.
+This file is part of SmallyMouse2.
 
-    SmallyMouse2 is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
+SmallyMouse2 is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-	Email: simon.inns@gmail.com
+Email: simon.inns@gmail.com
 
 ************************************************************************/
 
@@ -100,25 +100,27 @@ volatile uint8_t yTimerTop = 0;				// Y axis timer TOP value
 // Interrupt Service Routine based on Timer0 for mouse X movement quadrature output
 ISR(TIMER0_COMPA_vect)
 {
-	// Process X output
-	if (mouseDistanceX > 0) {
-		// Set the output pins according to the current phase
-		if (mouseEncoderPhaseX == 0) X1_PORT |=  X1;	// Set X1 to 1
-		if (mouseEncoderPhaseX == 1) X2_PORT |=  X2;	// Set X2 to 1
-		if (mouseEncoderPhaseX == 2) X1_PORT &= ~X1;	// Set X1 to 0
-		if (mouseEncoderPhaseX == 3) X2_PORT &= ~X2;	// Set X2 to 0
+	if (USBMouseIsActive)
+	{
+		// Process X output
+		if (mouseDistanceX > 0) {
+			// Set the output pins according to the current phase
+			if (mouseEncoderPhaseX == 0) X1_PORT |=  X1;	// Set X1 to 1
+			if (mouseEncoderPhaseX == 1) X2_PORT |=  X2;	// Set X2 to 1
+			if (mouseEncoderPhaseX == 2) X1_PORT &= ~X1;	// Set X1 to 0
+			if (mouseEncoderPhaseX == 3) X2_PORT &= ~X2;	// Set X2 to 0
 
-		// Change phase
-		if (mouseDirectionX == 0) mouseEncoderPhaseX--; else mouseEncoderPhaseX++;
-		
-		// Decrement the distance left to move
-		mouseDistanceX--;
+			// Change phase
+			if (mouseDirectionX == 0) mouseEncoderPhaseX--; else mouseEncoderPhaseX++;
+			
+			// Decrement the distance left to move
+			mouseDistanceX--;
 
-		// Range check the phase
-		if ((mouseDirectionX == 1) && (mouseEncoderPhaseX > 3)) mouseEncoderPhaseX = 0;
-		if ((mouseDirectionX == 0) && (mouseEncoderPhaseX < 0)) mouseEncoderPhaseX = 3;
+			// Range check the phase
+			if ((mouseDirectionX == 1) && (mouseEncoderPhaseX > 3)) mouseEncoderPhaseX = 0;
+			if ((mouseDirectionX == 0) && (mouseEncoderPhaseX < 0)) mouseEncoderPhaseX = 3;
+		}
 	}
-	
 	// Set the timer top value for the next interrupt
 	OCR0A = xTimerTop;
 }
@@ -126,25 +128,27 @@ ISR(TIMER0_COMPA_vect)
 // Interrupt Service Routine based on Timer2 for mouse Y movement quadrature output
 ISR(TIMER2_COMPA_vect)
 {
-	// Process Y output
-	if (mouseDistanceY > 0) {
-		// Set the output pins according to the current phase
-		if (mouseEncoderPhaseY == 3) Y1_PORT &= ~Y1;	// Set Y1 to 0
-		if (mouseEncoderPhaseY == 2) Y2_PORT &= ~Y2;	// Set Y2 to 0
-		if (mouseEncoderPhaseY == 1) Y1_PORT |=  Y1;	// Set Y1 to 1
-		if (mouseEncoderPhaseY == 0) Y2_PORT |=  Y2;	// Set Y2 to 1
+	if (USBMouseIsActive)
+	{
+		// Process Y output
+		if (mouseDistanceY > 0) {
+			// Set the output pins according to the current phase
+			if (mouseEncoderPhaseY == 3) Y1_PORT &= ~Y1;	// Set Y1 to 0
+			if (mouseEncoderPhaseY == 2) Y2_PORT &= ~Y2;	// Set Y2 to 0
+			if (mouseEncoderPhaseY == 1) Y1_PORT |=  Y1;	// Set Y1 to 1
+			if (mouseEncoderPhaseY == 0) Y2_PORT |=  Y2;	// Set Y2 to 1
 
-		// Change phase
-		if (mouseDirectionY == 0) mouseEncoderPhaseY--; else mouseEncoderPhaseY++;
-		
-		// Decrement the distance left to move
-		mouseDistanceY--;
+			// Change phase
+			if (mouseDirectionY == 0) mouseEncoderPhaseY--; else mouseEncoderPhaseY++;
+			
+			// Decrement the distance left to move
+			mouseDistanceY--;
 
-		// Range check the phase
-		if ((mouseDirectionY == 1) && (mouseEncoderPhaseY > 3)) mouseEncoderPhaseY = 0;
-		if ((mouseDirectionY == 0) && (mouseEncoderPhaseY < 0)) mouseEncoderPhaseY = 3;
+			// Range check the phase
+			if ((mouseDirectionY == 1) && (mouseEncoderPhaseY > 3)) mouseEncoderPhaseY = 0;
+			if ((mouseDirectionY == 0) && (mouseEncoderPhaseY < 0)) mouseEncoderPhaseY = 3;
+		}
 	}
-	
 	// Set the timer top value for the next interrupt
 	OCR2A = yTimerTop;
 }
@@ -163,6 +167,9 @@ int main(void)
 	
 	// Main processing loop
 	while(1) {
+		// perform Bootselector
+		processBootSelector();
+
 		// Perform any pending mouse actions
 		processMouse();
 
@@ -203,48 +210,57 @@ void initialiseHardware(void)
 	MB_PORT |= MB; // Pin = 1 (on)
 	RB_PORT |= RB; // Pin = 1 (on)
 
+	BootSel_DDR &= ~BootSel; //Input
+	BootSel_PORT |= BootSel; // Turn on weak pull-up
+
+	BootSelDataIn_DDR = 0; //input
+	BootSelDataOut_DDR = 255; //output
+
+	MouseDataInput_DDR = 0; //Input;
+	MouseDataInput_PU = 255; //enable weak pull-up;
+
 	// Set the rate limit configuration header to input
-	RATESW_DDR &= ~RATESW; // Input
-	RATESW_PORT |= RATESW; // Turn on weak pull-up
+	//RATESW_DDR &= ~RATESW; // Input
+	//RATESW_PORT |= RATESW; // Turn on weak pull-up
 	
 	// Initialise the expansion (Ian) header
-	E0_DDR |= ~E0; // Output
-	E1_DDR |= ~E1; // Output
-	E2_DDR |= ~E2; // Output
-	E3_DDR |= ~E3; // Output
-	E4_DDR |= ~E4; // Output
-	E5_DDR |= ~E5; // Output
-	E6_DDR |= ~E6; // Output
-	E7_DDR |= ~E7; // Output
-	
-	E0_PORT &= ~E0; // Pin = 0
-	E1_PORT &= ~E1; // Pin = 0
-	E2_PORT &= ~E2; // Pin = 0
-	E3_PORT &= ~E3; // Pin = 0
-	E4_PORT &= ~E4; // Pin = 0
-	E5_PORT &= ~E5; // Pin = 0
-	E6_PORT &= ~E6; // Pin = 0
-	E7_PORT &= ~E7; // Pin = 0
+	//E0_DDR |= ~E0; // Output
+	//E1_DDR |= ~E1; // Output
+	//E2_DDR |= ~E2; // Output
+	//E3_DDR |= ~E3; // Output
+	//E4_DDR |= ~E4; // Output
+	//E5_DDR |= ~E5; // Output
+	//E6_DDR |= ~E6; // Output
+	//E7_DDR |= ~E7; // Output
+	//
+	//E0_PORT &= ~E0; // Pin = 0
+	//E1_PORT &= ~E1; // Pin = 0
+	//E2_PORT &= ~E2; // Pin = 0
+	//E3_PORT &= ~E3; // Pin = 0
+	//E4_PORT &= ~E4; // Pin = 0
+	//E5_PORT &= ~E5; // Pin = 0
+	//E6_PORT &= ~E6; // Pin = 0
+	//E7_PORT &= ~E7; // Pin = 0
 	
 	// Initialise the LUFA USB stack
 	USB_Init();
 	
-	// By default, SmallyMouse2 will output USB debug events on the 
+	// By default, SmallyMouse2 will output USB debug events on the
 	// AVR's UART port.  You can monitor the debug console by connecting
 	// a serial to USB adapter.  Only the Tx (D3 and 0V pins are required).
 	
 	// Initialise the serial UART - 9600 baud 8N1
-	Serial_Init(9600, false);
+	//Serial_Init(9600, false);
 
 	// Create a serial debug stream on stdio
-	// Note: The serial UART is available on the 
+	// Note: The serial UART is available on the
 	// expansion (Ian) header
-	Serial_CreateStream(NULL);
+	//Serial_CreateStream(NULL);
 
 	// Output some debug header information to the serial console
-	puts_P(PSTR(ESC_FG_YELLOW "SmallyMouse2 - Serial debug console\r\n" ESC_FG_WHITE));
-	puts_P(PSTR(ESC_FG_YELLOW "(c)2017 Simon Inns\r\n" ESC_FG_WHITE));
-	puts_P(PSTR(ESC_FG_YELLOW "http://www.waitingforfriday.com\r\n" ESC_FG_WHITE));
+	//puts_P(PSTR(ESC_FG_YELLOW "SmallyMouse2 - Serial debug console\r\n" ESC_FG_WHITE));
+	//puts_P(PSTR(ESC_FG_YELLOW "(c)2017 Simon Inns\r\n" ESC_FG_WHITE));
+	//puts_P(PSTR(ESC_FG_YELLOW "http://www.waitingforfriday.com\r\n" ESC_FG_WHITE));
 }
 
 // Initialise the ISR timers
@@ -256,12 +272,12 @@ void initialiseTimers(void)
 	
 	// If we can receive 127 movements per report at a rate of 125 Hz
 	// then the maximum movement per second is 100-125 Hz * 127 movements =
-	// 12,700 - 15,875 movements per second (i.e. the quadrature output has 
+	// 12,700 - 15,875 movements per second (i.e. the quadrature output has
 	// to be 12,700 - 15,875 Hz to keep up)
 	
-	// The setting of the timers controls the maximum interrupt speed and 
+	// The setting of the timers controls the maximum interrupt speed and
 	// therefore the maximum possible quadrature rate output.
-	// 
+	//
 	// Each movement unit reported by the USB device causes a single phase
 	// change in the quadrature output (which means there is a 4:1 ratio
 	// between the USB movement units and the quadrature movement output)
@@ -283,7 +299,7 @@ void initialiseTimers(void)
 	TCCR0A = (1 << WGM01); // Clear timer on compare match (CTC) mode
 	TCCR0B = 5; //  CS02/CS01/CS00 = binary 101 = /1024 prescale
 	TIMSK0 = (1 << OCIE0A); // Timer0 interrupt enabled
-		
+	
 	// Configure Timer2 to interrupt (8-bit timer)
 	OCR2A = 0; // In CTC mode OCR2A = TOP
 	TCCR2A = (1 << WGM21); // Clear timer on compare match (CTC) mode
@@ -291,13 +307,61 @@ void initialiseTimers(void)
 	TIMSK2 = (1 << OCIE2A); // Timer2 interrupt enabled
 }
 
+void processBootSelector(void)
+{
+	if ((BootSel_PIN & BootSel) == 0) //normal boot from DF0:
+	{
+		//just copy data from input port to output port
+		BootSelDataOut_PORT = BootSelDataIn_PIN;
+	}
+	else //boot from DF1:
+	{
+		//process SEL0
+		if ((BootSelDataIn_PIN & BootSelDataInSel0) == 0)
+		{
+			BootSelDataOut_PORT &= ~BootSelDataOutSel1;
+		}
+		else
+		{
+			BootSelDataOut_PORT |= BootSelDataOutSel1;
+		}
+
+		//process SEL1
+		if ((BootSelDataIn_PIN & BootSelDataInSel1) == 0)
+		{
+			BootSelDataOut_PORT &= ~BootSelDataOutSel0;
+		}
+		else
+		{
+			BootSelDataOut_PORT |= BootSelDataOutSel0;
+		}
+	}
+}
+
 // Read the mouse USB report and process the information
 void processMouse(void)
 {
 	USB_MouseReport_Data_t MouseReport;
-		
+	
 	// Only process the mouse if a mouse is attached to the USB port
-	if (USB_HostState != HOST_STATE_Configured)	return;
+	if (USB_HostState != HOST_STATE_Configured)
+	{
+		//just copy Amiga joystick port to output instead
+		MouseDataOutput = JoystickDataInput;
+		return;
+	}
+
+	// Check for Amiga Fire button
+	if ((JoystickDataInput & AmigaFireButton) == 0)
+	{
+		USBMouseIsActive = false;
+	}
+
+	if(!USBMouseIsActive)
+	{
+		//just copy Amiga joystick port to output
+		MouseDataOutput = JoystickDataInput;
+	}
 
 	// Select mouse data pipe
 	Pipe_SelectPipe(MOUSE_DATA_IN_PIPE);
@@ -306,20 +370,16 @@ void processMouse(void)
 	Pipe_Unfreeze();
 
 	// Has a packet arrived from the USB device?
-	if (!(Pipe_IsINReceived())) {
+	if (!(Pipe_IsINReceived()))
+	{
 		// Nothing received, exit...
 		Pipe_Freeze();
 		return;
 	}
 
 	// Ensure pipe is in the correct state before reading
-	if (Pipe_IsReadWriteAllowed()) {
-		// Set USB report processing activity on expansion port pin D0
-		// Note: This can be used to analyze the rate at which USB mouse
-		// reports are received by measuring the rate using an oscilloscope
-		// or frequency counter on D0
-		E0_PORT |= E0; // Pin = 1
-		
+	if (Pipe_IsReadWriteAllowed())
+	{
 		// Read in mouse report data
 		Pipe_Read_Stream_LE(&MouseReport, sizeof(MouseReport), NULL);
 		
@@ -341,34 +401,40 @@ void processMouse(void)
 		// -Y = Mouse going up
 		//
 		// X and Y have a range of -127 to +127
-		
-		// If the mouse movement changes direction then disregard any remaining
-		// movement units in the previous direction.
-		if (MouseReport.X > 0 && mouseDirectionX == 0) mouseDistanceX = 0;
-		if (MouseReport.X < 0 && mouseDirectionX == 1) mouseDistanceX = 0;
-		if (MouseReport.Y > 0 && mouseDirectionY == 0) mouseDistanceY = 0;
-		if (MouseReport.Y < 0 && mouseDirectionY == 1) mouseDistanceY = 0;
-		
-		// Process mouse X movement -------------------------------------------
-		if (MouseReport.X != 0) xTimerTop = processMouseMovement(MouseReport.X, MOUSEX);
-		if (MouseReport.Y != 0) yTimerTop = processMouseMovement(MouseReport.Y, MOUSEY);
-		
-		// Process mouse buttons ----------------------------------------------
-		
+
 		// Check for left mouse button
-		if ((MouseReport.Button & 0x01) == 0) LB_PORT |= LB; // Button on
-		else LB_PORT &= ~LB; // Button off
-			
-		// Check for middle mouse button
-		if ((MouseReport.Button & 0x04) == 0) MB_PORT |= MB; // Button on
-		else MB_PORT &= ~MB; // Button off
-			
-		// Check for right mouse button
-		if ((MouseReport.Button & 0x02) == 0) RB_PORT |= RB; // Button on
-		else RB_PORT &= ~RB; // Button off
+		if ((MouseReport.Button & 0x01) == 0)
+		{
+			USBMouseIsActive = true;
+		}
 		
-		// Clear USB report processing activity on expansion port pin D0
-		E0_PORT &= ~E0; // Pin = 0
+		if(USBMouseIsActive)
+		{
+			// If the mouse movement changes direction then disregard any remaining
+			// movement units in the previous direction.
+			if (MouseReport.X > 0 && mouseDirectionX == 0) mouseDistanceX = 0;
+			if (MouseReport.X < 0 && mouseDirectionX == 1) mouseDistanceX = 0;
+			if (MouseReport.Y > 0 && mouseDirectionY == 0) mouseDistanceY = 0;
+			if (MouseReport.Y < 0 && mouseDirectionY == 1) mouseDistanceY = 0;
+			
+			// Process mouse X movement -------------------------------------------
+			if (MouseReport.X != 0) xTimerTop = processMouseMovement(MouseReport.X, MOUSEX);
+			if (MouseReport.Y != 0) yTimerTop = processMouseMovement(MouseReport.Y, MOUSEY);
+			
+			// Process mouse buttons ----------------------------------------------
+			
+			// Check for left mouse button
+			if ((MouseReport.Button & 0x01) == 0) LB_PORT |= LB; // Button on
+			else LB_PORT &= ~LB; // Button off
+			
+			// Check for middle mouse button
+			if ((MouseReport.Button & 0x04) == 0) MB_PORT |= MB; // Button on
+			else MB_PORT &= ~MB; // Button off
+			
+			// Check for right mouse button
+			if ((MouseReport.Button & 0x02) == 0) RB_PORT |= RB; // Button on
+			else RB_PORT &= ~RB; // Button off
+		}
 	}
 
 	// Clear the IN endpoint, ready for next data packet
@@ -391,7 +457,7 @@ uint8_t processMouseMovement(int8_t movementUnits, uint8_t axis)
 		// Add the movement units to the quadrature output buffer
 		if (axis == MOUSEX) mouseDistanceX += movementUnits;
 		else mouseDistanceY += movementUnits;
-	} else {
+		} else {
 		// Set the mouse direction to decrementing
 		if (axis == MOUSEX) mouseDirectionX = 0; else mouseDirectionY = 0;
 		
@@ -403,7 +469,7 @@ uint8_t processMouseMovement(int8_t movementUnits, uint8_t axis)
 	// Apply the quadrature output buffer limit
 	if (axis == MOUSEX) {
 		if (mouseDistanceX > Q_BUFFERLIMIT) mouseDistanceX = Q_BUFFERLIMIT;
-	} else {
+		} else {
 		if (mouseDistanceY > Q_BUFFERLIMIT) mouseDistanceY = Q_BUFFERLIMIT;
 	}
 	
@@ -443,28 +509,28 @@ uint8_t processMouseMovement(int8_t movementUnits, uint8_t axis)
 	timerTopValue = ((10000 / timerTopValue) / 64) - 1;
 	
 	// If the 'Slow' configuration jumper is shorted; apply the quadrature rate limit
-	if ((RATESW_PIN & RATESW) == 0) {
-		// Rate limit is on
-		
-		// Rate limit is provided in hertz
-		// Each timer tick is 64 uS
-		//
-		// Convert hertz into period in uS
-		// 1500 Hz = 1,000,000 / 1500 = 666.67 uS
-		// 
-		// Convert period into timer ticks (* 4 due to quadrature)
-		// 666.67 us / (64 * 4) = 2.6 ticks
-		//
-		// Timer TOP is 0-255, so subtract 1
-		// 10.42 ticks - 1 = 9.42 ticks
-		
-		uint32_t rateLimit = ((1000000 / Q_RATELIMIT) / 256) - 1;
-		
-		// If the timerTopValue is less than the rate limit, we output
-		// at the maximum allowed rate.  This will cause addition lag that
-		// is handled by the quadrature output buffer limit above.
-		if (timerTopValue < (uint16_t)rateLimit) timerTopValue = (uint16_t)rateLimit;
-	}
+	//	if ((RATESW_PIN & RATESW) == 0) {
+	// Rate limit is on
+	
+	// Rate limit is provided in hertz
+	// Each timer tick is 64 uS
+	//
+	// Convert hertz into period in uS
+	// 1500 Hz = 1,000,000 / 1500 = 666.67 uS
+	//
+	// Convert period into timer ticks (* 4 due to quadrature)
+	// 666.67 us / (64 * 4) = 2.6 ticks
+	//
+	// Timer TOP is 0-255, so subtract 1
+	// 10.42 ticks - 1 = 9.42 ticks
+	
+	//	uint32_t rateLimit = ((1000000 / Q_RATELIMIT) / 256) - 1;
+	
+	// If the timerTopValue is less than the rate limit, we output
+	// at the maximum allowed rate.  This will cause addition lag that
+	// is handled by the quadrature output buffer limit above.
+	//	if (timerTopValue < (uint16_t)rateLimit) timerTopValue = (uint16_t)rateLimit;
+	//}
 	
 	// Return the timer TOP value
 	return (uint8_t)timerTopValue;
@@ -476,74 +542,77 @@ uint8_t processMouseMovement(int8_t movementUnits, uint8_t axis)
 // starts the library USB task to begin the enumeration and USB management process.
 void EVENT_USB_Host_DeviceAttached(void)
 {
-	puts_P(PSTR(ESC_FG_GREEN "USB Device attached\r\n" ESC_FG_WHITE));
+	//puts_P(PSTR(ESC_FG_GREEN "USB Device attached\r\n" ESC_FG_WHITE));
 }
 
 // Event handler for the USB_DeviceUnattached event. This indicates that a device has been removed from the host, and
 // stops the library USB task management process.
 void EVENT_USB_Host_DeviceUnattached(void)
 {
-	puts_P(PSTR(ESC_FG_GREEN "USB Device detached\r\n" ESC_FG_WHITE));
+	//puts_P(PSTR(ESC_FG_GREEN "USB Device detached\r\n" ESC_FG_WHITE));
 }
 
 // Event handler for the USB_DeviceEnumerationComplete event. This indicates that a device has been successfully
 // enumerated by the host and is now ready to be used by the application.
 void EVENT_USB_Host_DeviceEnumerationComplete(void)
 {
-	puts_P(PSTR("Getting configuration data from device...\r\n"));
+	//puts_P(PSTR("Getting configuration data from device...\r\n"));
 
 	uint8_t ErrorCode;
 
 	/* Get and process the configuration descriptor data */
 	if ((ErrorCode = ProcessConfigurationDescriptor()) != SuccessfulConfigRead) {
 		if (ErrorCode == ControlError) {
-			puts_P(PSTR(ESC_FG_RED "Control Error (Get configuration)!\r\n"));
-		} else {
-			puts_P(PSTR(ESC_FG_RED "Invalid Device!\r\n"));
+			//puts_P(PSTR(ESC_FG_RED "Control Error (Get configuration)!\r\n"));
+			} else {
+			//puts_P(PSTR(ESC_FG_RED "Invalid Device!\r\n"));
 		}
 
-		printf_P(PSTR(" -- Error Code: %d\r\n" ESC_FG_WHITE), ErrorCode);
+		//printf_P(PSTR(" -- Error Code: %d\r\n" ESC_FG_WHITE), ErrorCode);
 		return;
 	}
 
 	// Set the device configuration to the first configuration (rarely do devices use multiple configurations)
 	if ((ErrorCode = USB_Host_SetDeviceConfiguration(1)) != HOST_SENDCONTROL_Successful) {
-		printf_P(PSTR(ESC_FG_RED "Control Error (Set configuration)!\r\n"
-		                         " -- Error Code: %d\r\n" ESC_FG_WHITE), ErrorCode);
+		//printf_P(PSTR(ESC_FG_RED "Control Error (Set configuration)!\r\n"
+		//" -- Error Code: %d\r\n" ESC_FG_WHITE), ErrorCode);
 		return;
 	}
 	
 	// HID class request to set the mouse protocol to the Boot Protocol
 	USB_ControlRequest = (USB_Request_Header_t) {
-			.bmRequestType = (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE),
-			.bRequest      = HID_REQ_SetProtocol,
-			.wValue        = 0,
-			.wIndex        = 0,
-			.wLength       = 0,
+		.bmRequestType = (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE),
+		.bRequest      = HID_REQ_SetProtocol,
+		.wValue        = 0,
+		.wIndex        = 0,
+		.wLength       = 0,
 	};
 
 	// Select the control pipe for the request transfer
 	Pipe_SelectPipe(PIPE_CONTROLPIPE);
 
+	//Set USB mode on
+	USBMouseIsActive = true; //default is USB mouse
+
 	// Send the request, display error and wait for device detach if request fails
 	if ((ErrorCode = USB_Host_SendControlRequest(NULL)) != HOST_SENDCONTROL_Successful) {
-		printf_P(PSTR(ESC_FG_RED "Control Error (Set protocol)!\r\n"
-								 " -- Error Code: %d\r\n" ESC_FG_WHITE), ErrorCode);
+		//printf_P(PSTR(ESC_FG_RED "Control Error (Set protocol)!\r\n"
+		//" -- Error Code: %d\r\n" ESC_FG_WHITE), ErrorCode);
 
 		USB_Host_SetDeviceConfiguration(0);
 		return;
 	}
 
-	puts_P(PSTR("USB Mouse enumeration successful\r\n"));
+	//puts_P(PSTR("USB Mouse enumeration successful\r\n"));
 }
 
 // Event handler for the USB_HostError event. This indicates that a hardware error occurred while in host mode.
 void EVENT_USB_Host_HostError(const uint8_t ErrorCode)
 {
 	USB_Disable();
-
-	printf_P(PSTR(ESC_FG_RED "Host Mode Error!\r\n"
-	                       " -- Error Code %d\r\n" ESC_FG_WHITE), ErrorCode);
+	USBMouseIsActive = false; //default is Amiga mouse
+	//printf_P(PSTR(ESC_FG_RED "Host Mode Error!\r\n"
+	//" -- Error Code %d\r\n" ESC_FG_WHITE), ErrorCode);
 
 	while(1);
 }
@@ -551,12 +620,13 @@ void EVENT_USB_Host_HostError(const uint8_t ErrorCode)
 // Event handler for the USB_DeviceEnumerationFailed event. This indicates that a problem occurred while
 // enumerating an attached USB device.
 void EVENT_USB_Host_DeviceEnumerationFailed(const uint8_t ErrorCode,
-                                            const uint8_t SubErrorCode)
+const uint8_t SubErrorCode)
 {
-	printf_P(PSTR(ESC_FG_RED "Device Enumeration Error!\r\n"
-	                         " -- Error Code %d\r\n"
-	                         " -- Sub Error Code %d\r\n"
-	                         " -- In State %d\r\n" ESC_FG_WHITE), ErrorCode, SubErrorCode, USB_HostState);
+	USBMouseIsActive = false; //default is Amiga mouse
+	//printf_P(PSTR(ESC_FG_RED "Device Enumeration Error!\r\n"
+	//	" -- Error Code %d\r\n"
+	//	" -- Sub Error Code %d\r\n"
+	//	" -- In State %d\r\n" ESC_FG_WHITE), ErrorCode, SubErrorCode, USB_HostState);
 }
 
 

@@ -167,12 +167,14 @@
   <offline-documentation help="" />
   <dependencies>
     <content-extension eid="fourwalledcubicle.lufa" uuidref="0e160d5c-e331-48d9-850b-e0387912171b" version="15.11.15" />
-    <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.31.0" />
+    <content-extension eid="atmel.asf" uuidref="Atmel.ASF" version="3.34.1" />
   </dependencies>
   <project id="lufa.demos.host.lowlevel.mouse.example.avr8" value="Add" config="" content-id="0e160d5c-e331-48d9-850b-e0387912171b" />
   <board id="lufa.boards.dummy.avr8" value="Add" config="" content-id="0e160d5c-e331-48d9-850b-e0387912171b" />
 </framework-data>
     </AsfFrameworkConfig>
+    <ResetRule>0</ResetRule>
+    <EraseKey />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <ToolchainSettings>

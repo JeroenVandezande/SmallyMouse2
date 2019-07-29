@@ -70,57 +70,81 @@
 #define X1_DDR	DDRC
 #define X1		(1 << 0)
 
-// Rate limit on/off switch (marked 'slow')
-#define RATESW_PORT	PORTA
-#define RATESW_PIN	PINA
-#define RATESW_DDR	DDRA
-#define RATESW		(1 << 4)
+// input and output ports for Mouse data
+#define MouseDataOutput	PORTC
+#define JoystickDataInput PINB
+#define MouseDataInput_PU PORTB
+#define MouseDataInput_DDR DDRB
+#define AmigaFireButton		(1 << 4)
 
-// Expansion (Ian) header
-#define E0_PORT	PORTD
-#define E0_PIN	PIND
-#define E0_DDR	DDRD
-#define E0		(1 << 0)
+//Boot Selector
+#define BootSel_PORT PORTF
+#define BootSel_PIN	PINF
+#define BootSel_DDR	DDRF
+#define BootSel		(1 << 0)
 
-#define E1_PORT	PORTD
-#define E1_PIN	PIND
-#define E1_DDR	DDRD
-#define E1		(1 << 1)
+#define BootSelDataIn_PIN	PINE
+#define BootSelDataIn_DDR	DDRE
+#define BootSelDataInSel0		(1 << 0)
+#define BootSelDataInSel1		(1 << 1)
 
-#define E2_PORT	PORTD
-#define E2_PIN	PIND
-#define E2_DDR	DDRD
-#define E2		(1 << 2)
+#define BootSelDataOut_PORT PORTD
+#define BootSelDataOut_DDR	DDRD
+#define BootSelDataOutSel0		(1 << 0)
+#define BootSelDataOutSel1		(1 << 1)
 
-#define E3_PORT	PORTD
-#define E3_PIN	PIND
-#define E3_DDR	DDRD
-#define E3		(1 << 3)
-
-#define E4_PORT	PORTD
-#define E4_PIN	PIND
-#define E4_DDR	DDRD
-#define E4		(1 << 4)
-
-#define E5_PORT	PORTD
-#define E5_PIN	PIND
-#define E5_DDR	DDRD
-#define E5		(1 << 5)
-
-#define E6_PORT	PORTD
-#define E6_PIN	PIND
-#define E6_DDR	DDRD
-#define E6		(1 << 6)
-
-#define E7_PORT	PORTD
-#define E7_PIN	PIND
-#define E7_DDR	DDRD
-#define E7		(1 << 7)
+//// Rate limit on/off switch (marked 'slow')
+//#define RATESW_PORT	PORTA
+//#define RATESW_PIN	PINA
+//#define RATESW_DDR	DDRA
+//#define RATESW		(1 << 4)
+//
+//// Expansion (Ian) header
+//#define E0_PORT	PORTD
+//#define E0_PIN	PIND
+//#define E0_DDR	DDRD
+//#define E0		(1 << 0)
+//
+//#define E1_PORT	PORTD
+//#define E1_PIN	PIND
+//#define E1_DDR	DDRD
+//#define E1		(1 << 1)
+//
+//#define E2_PORT	PORTD
+//#define E2_PIN	PIND
+//#define E2_DDR	DDRD
+//#define E2		(1 << 2)
+//
+//#define E3_PORT	PORTD
+//#define E3_PIN	PIND
+//#define E3_DDR	DDRD
+//#define E3		(1 << 3)
+//
+//#define E4_PORT	PORTD
+//#define E4_PIN	PIND
+//#define E4_DDR	DDRD
+//#define E4		(1 << 4)
+//
+//#define E5_PORT	PORTD
+//#define E5_PIN	PIND
+//#define E5_DDR	DDRD
+//#define E5		(1 << 5)
+//
+//#define E6_PORT	PORTD
+//#define E6_PIN	PIND
+//#define E6_DDR	DDRD
+//#define E6		(1 << 6)
+//
+//#define E7_PORT	PORTD
+//#define E7_PIN	PIND
+//#define E7_DDR	DDRD
+//#define E7		(1 << 7)
 
 // Function prototypes
 void initialiseHardware(void);
 void initialiseTimers(void);
 void processMouse(void);
+void processBootSelector(void);
 uint8_t processMouseMovement(int8_t movementUnits, uint8_t axis);
 
 // USB callback event handlers (LUFA)
@@ -131,6 +155,8 @@ void EVENT_USB_Host_DeviceEnumerationFailed(const uint8_t ErrorCode, const uint8
 void EVENT_USB_Host_DeviceEnumerationComplete(void);
 
 void ReadNextReport(void);
+
+bool USBMouseIsActive;
 
 #endif
 
